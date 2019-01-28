@@ -50,6 +50,9 @@ public class JodaParser implements TimestampParser {
   public JodaParser(String pattern, Locale locale, String timezone) {
     this.timezone = timezone;
 
+    if (pattern.contains("M") && pattern.contains("D")) {
+      throw new RuntimeException("Invalid pattern '" + pattern + "' containing both 'M' to match 'month of year' and 'D' to match 'day of year'. Did you mean to use 'd' to match 'day of month' ?");
+    }
     // Does the pattern contain year information?
     hasYear = (pattern.contains("Y") || pattern.contains("y"));
     // If pattern has no timezone format, we should parse in "local" time.

@@ -182,7 +182,13 @@ class LogStash::Filters::Date < LogStash::Filters::Base
     @datefilter = org.logstash.filters.DateFilter.new(source, @target, @tag_on_failure, success_block, failure_block)
 
     @match[1..-1].map do |format|
-      @datefilter.accept_filter_config(format, @locale, @timezone)
+      begin
+        @datefilter.accept_filter_config(format, @locale, @timezone)
+      rescue Exception => e
+        raise LogStash::ConfigurationError, I18n.t("logstash.agent.configuration.invalid_plugin_register",
+          :plugin => "filter", :type => "date",
+          :error => e.message)
+      end
 
       # Offer a fallback parser such that if the default system Locale is non-english and that no locale is set,
       # we should try to parse english if the first local parsing fails.:w

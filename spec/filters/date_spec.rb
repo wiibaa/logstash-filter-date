@@ -16,6 +16,13 @@ RUBY_ENGINE == "jruby" and describe LogStash::Filters::Date do
     end
   end
 
+  context "when giving an invalid pattern using both M and D" do
+    let(:options) { { "match" => ["mydate", "YYYY-MM-DD"] } }
+    it "raises a configuration error" do
+      expect { described_class.new(options) }.to raise_error(LogStash::ConfigurationError)
+    end
+  end
+
   describe "parsing with ISO8601" do
     config <<-CONFIG
       filter {
