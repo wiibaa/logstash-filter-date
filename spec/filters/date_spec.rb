@@ -456,9 +456,14 @@ RUBY_ENGINE == "jruby" and describe LogStash::Filters::Date do
     # TIL Venezuela changed from -4:30 to -4:00 at 02:30 on Sunday, 1 May 2016
     # but the bundled version of Joda (2.8.2) in JRuby 1.7.25 and 9.1.9.0 does not know about this.
     # meaning that the @timestamp should be "2016-05-01T12:18:18.123Z".
+    # now fixed in JRuby 9.2
     sample("mydate" => "2016-05-01T08:18:18.123", "mytz" => "America/Caracas") do
       expect(subject.get("mydate")).to eq("2016-05-01T08:18:18.123")
-      expect(subject.get("@timestamp").time).to eq(Time.iso8601("2016-05-01T12:48:18.123Z").utc)
+      if JRUBY_VERSION.start_with?("1") || JRUBY_VERSION.start_with?("9.0") || JRUBY_VERSION.start_with?("9.1")
+        expect(subject.get("@timestamp").time).to eq(Time.iso8601("2016-05-01T12:48:18.123Z").utc)
+      else
+        expect(subject.get("@timestamp").time).to eq(Time.iso8601("2016-05-01T12:18:18.123Z").utc)
+      end
     end
   end
 
@@ -821,7 +826,7 @@ RUBY_ENGINE == "jruby" and describe LogStash::Filters::Date do
   end
 
   describe "cancelled events" do
-    subject { described_class.new("match" => [ "message", "yyyy" ]) }
+    subject { described_class.new("match" => [ "message", "yyyy" ], "timezone" => "UTC" )}
 
     context "single cancelled event" do
       let(:event) do
